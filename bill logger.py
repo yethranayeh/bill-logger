@@ -17,9 +17,6 @@ class MainWindow(qtw.QMainWindow):
     def callback(self):
         pass
 
-stylesheet = """
-"""
-
 if __name__ == "__main__":
     app = qtw.QApplication(sys.argv)
     window = MainWindow()
