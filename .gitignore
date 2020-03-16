@@ -1,2 +1,4 @@
 guide.md
 _*.py
+*.qrc
+__pycache__
