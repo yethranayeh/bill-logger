@@ -1,4 +1,5 @@
 guide.md
 _*.py
 *.qrc
+*.csv
 __pycache__

@@ -1,7 +1,9 @@
 import sys
+import os
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 from PyQt5 import QtGui as qtg
+import csv
 import icons
 
 # print(qtw.QStyleFactory.keys())
@@ -13,23 +15,18 @@ class Logger(qtw.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setLayout(qtw.QFormLayout())
-        self.setMinimumSize(400, 330)
 
-        float_validator = qtg.QIntValidator()
+        float_validator = qtg.QDoubleValidator()
         self.management_edit = qtw.QLineEdit()
-        self.management_edit.setMaxLength(3)
         self.management_edit.setValidator(float_validator)
         self.electricity_edit = qtw.QLineEdit()
-        self.electricity_edit.setMaxLength(3)
         self.electricity_edit.setValidator(float_validator)
         self.rent_edit = qtw.QLineEdit()
-        self.rent_edit.setMaxLength(4)
         self.rent_edit.setValidator(float_validator)
         self.rent_edit.setPlaceholderText("1150")
         self.rent_edit.setText("1150")
         # self.rent_edit.setInputMask("0")
         self.add_button = qtw.QPushButton("Add", clicked=self.add_data_emit)
-        self.add_button.setToolTip("Add a new entry.")
 
         self.select_month = qtw.QComboBox()
         self.select_month.addItem("January")
@@ -58,6 +55,7 @@ class Logger(qtw.QWidget):
         # self.log_table.resizeColumnToContents(3)
         # self.log_table.setColumnWidth(4, 50)
         self.log_table.resizeRowsToContents()
+        # self.log_table.
 
         self.layout().addRow("Management", self.management_edit)
         self.layout().addRow("Electricity", self.electricity_edit)
@@ -83,11 +81,14 @@ class MainWindow(qtw.QMainWindow):
         appIcon = qtg.QIcon(qtg.QPixmap(":/appIcon"))
         self.setWindowIcon(appIcon)
         self.setWindowTitle("Bill Logger")
+        self.setMinimumSize(400, 330)
 
         menu = self.menuBar()
         file_menu = menu.addMenu("File")
         file_menu.addAction("Save", self.save)
         file_menu.addAction("Save As...", self.save_as)
+        # file_menu.addSeparator()
+        file_menu.addAction("Import...", self.import_data)
         file_menu.addSeparator()
         file_menu.addAction("Quit", self.close)
 
@@ -99,12 +100,58 @@ class MainWindow(qtw.QMainWindow):
         #end of code
         self.show() #can be called after creating an instance if it is not meant to show right after init
 
-
     def save(self):
-        pass
+        if self.logger_widget.select_year.currentIndex() == 0:
+            year = "2019"
+        elif self.logger_widget.select_year.currentIndex() == 1:
+            year = "2020"
+
+        with open(f"{year}.csv", "w", newline="") as csv_file:
+            writer = csv.writer(csv_file, dialect="excel")
+            for row in range(self.logger_widget.log_table.rowCount()):
+                row_data = []
+                for column in range(self.logger_widget.log_table.columnCount()):
+                    item = self.logger_widget.log_table.item(row, column)
+                    if item is not None:
+                        row_data.append(item.text())
+                    else:
+                        row_data.append("")
+                # print(row_data)
+                writer.writerow(row_data)
 
     def save_as(self):
-        pass
+        path = qtw.QFileDialog.getSaveFileName(self, os.getenv("HOME"), "", "CSV(*.csv)")
+        if path[0] != "":
+            with open(path[0], "w", newline="") as csv_file:
+                writer = csv.writer(csv_file, dialect="excel")
+                # writer.writerow(["Month","Total","Management","Electricity","Rent"])
+                for row in range(self.logger_widget.log_table.rowCount()):
+                    row_data = []
+                    for column in range(self.logger_widget.log_table.columnCount()):
+                        item = self.logger_widget.log_table.item(row, column)
+                        if item is not None:
+                            row_data.append(item.text())
+                        else:
+                            row_data.append("")
+                    # print(row_data)
+                    writer.writerow(row_data)
+
+    def import_data(self):
+        path = qtw.QFileDialog.getOpenFileName(self, os.getenv("HOME"), "", "CSV(*.csv)")
+        if path[0] != "":
+            with open(path[0], newline="") as csv_file:
+                self.logger_widget.log_table.clearContents()
+                self.logger_widget.log_table.setRowCount(0)
+                my_file = csv.reader(csv_file, dialect="excel")
+                for row_data in my_file:
+                    row = self.logger_widget.log_table.rowCount()
+                    self.logger_widget.log_table.insertRow(row)
+                    # if len(row_data) > 5:
+                    #     self.logger_widget.log_table.setColumnCount(len(row_data))
+                    for column, content in enumerate(row_data):
+                        # print(f"Colum {column}", f"Content: {content}")
+                        item = qtw.QTableWidgetItem(content)
+                        self.logger_widget.log_table.setItem(row, column, item)
 
     @qtc.pyqtSlot(float, float, float, str)
     def add_to_table(self, management, electricity, rent, month):
@@ -123,6 +170,8 @@ class MainWindow(qtw.QMainWindow):
     @qtc.pyqtSlot(int)
     def change_current_table(self, year):
         print(year)
+        # self.logger_widget.log_table.clearContents()
+        # self.logger_widget.log_table.setRowCount(0)
 
 
 stylesheet = """
