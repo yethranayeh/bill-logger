@@ -3,3 +3,4 @@ _*.py
 *.qrc
 *.csv
 __pycache__
+bill loggerTR.py
