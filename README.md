@@ -1,2 +1,2 @@
 # bill logger
- A Qt app to help log paid bills. 
+ A PyQt5 app to help log paid bills. 
